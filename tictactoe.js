@@ -29,12 +29,65 @@ const gameController = (function gameController() {
     return getBoard()[row][col] === 0;
   };
 
-  // function checkThreeInARow() {
-  //   // need to check three cases: horizontal, vertical, diagonal
-  //   const tempBoard = getBoard();
+  // const rowCol = function rowCol(square) {
+  //   const row = Math.floor(square / 3);
+  //   const col = square % 3;
 
-  //   // horizontal check
-  // }
+  //   return { row, col };
+  // };
+
+  function checkThreeInARow(square, player) {
+    // need to check three cases: horizontal, vertical, diagonal
+    const tempBoard = getBoard();
+    const row = Math.floor(square / 3);
+    const col = square % 3;
+    const playerNum = player ? 1 : 2;
+    let horizontal = true;
+    let vertical = true;
+    let diagonal = true;
+    const positiveDiagonalSet = [2, 4, 6];
+    const negativeDiagonalSet = [0, 4, 8];
+
+    // horizontal check
+    for (let i = 0; i < 3; i += 1) {
+      if (tempBoard[row][i] !== playerNum) {
+        horizontal = false;
+        break;
+      }
+    }
+
+    // vertical check
+    for (let i = 0; i < 3; i += 1) {
+      if (tempBoard[i][col] !== playerNum) {
+        vertical = false;
+        break;
+      }
+    }
+
+    if ((square % 2) === 0) {
+      // positive diagonal check
+      if (positiveDiagonalSet.includes(square)) {
+        for (let r = 2, c = 0; c < 3; c += 1, r -= 0) {
+          if (tempBoard[r][c] !== playerNum) {
+            diagonal = false;
+          }
+        }
+      }
+
+      // negative diagonal check
+      if (negativeDiagonalSet.includes(square)) {
+        for (let i = 0; i < 3; i += 1) {
+          if (tempBoard[i][i] !== playerNum) {
+            diagonal = false;
+          }
+        }
+      }
+    } else {
+      diagonal = false;
+    }
+
+    return horizontal || vertical || diagonal;
+  }
 
   const updateBoard = function updateBoard(square, player) {
     const row = Math.floor(square / 3);
@@ -49,6 +102,7 @@ const gameController = (function gameController() {
     changeTurn,
     getBoard,
     checkValidSquare,
+    checkThreeInARow,
     updateBoard,
   };
 }());
@@ -89,9 +143,8 @@ const squareClicked = function squareClicked(e) {
     gameController.getTurn() ? squareElement.style.backgroundColor = 'red' : squareElement.style.backgroundColor = 'black';
     gameController.updateBoard(squareAsNum, gameController.getTurn());
     console.log(gameController.getBoard());
-    console.log('previous turn', gameController.getTurn());
+    console.log(gameController.checkThreeInARow(squareAsNum, gameController.getTurn()));
     gameController.changeTurn();
-    console.log('turn changed', gameController.getTurn());
   }
 };
 
