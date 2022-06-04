@@ -166,8 +166,59 @@ const gameBoard = function gameBoard() {
   }
 
   const content = document.querySelector('content');
-  console.log(content);
   content.appendChild(tictactoeContainer);
 };
 
-gameBoard();
+const scoreKeeper = function scoreKeeper() {
+  let playerOneScore = 0;
+  let playerTwoScore = 0;
+  let tieCount = 0;
+
+  const scoreContainer = document.createElement('div');
+  scoreContainer.classList.add('score-container');
+
+  const playerOneScoreDisplay = document.createElement('div');
+  playerOneScoreDisplay.classList.add('score player-one');
+  playerOneScoreDisplay.textContent = `Player One: ${playerOneScore}`;
+
+  const playerTwoScoreDisplay = document.createElement('div');
+  playerTwoScoreDisplay.classList.add('score');
+  playerTwoScoreDisplay.textContent = `Player Two: ${playerTwoScore}`;
+
+  const tieDisplay = document.createElement('div');
+  tieDisplay.classList.add('score');
+  tieDisplay.textContent = `Tie: ${tieCount}`;
+
+  scoreContainer.appendChild(playerOneScoreDisplay);
+  scoreContainer.appendChild(tieDisplay);
+  scoreContainer.appendChild(playerTwoScoreDisplay);
+
+  const content = document.querySelector('content');
+  content.appendChild(scoreContainer);
+
+  function updateScore(winner) {
+    if (winner === 0) {
+      tieCount += 1;
+    } else if (winner === 1) {
+      playerOneScore += 1;
+    } else {
+      playerTwoScore += 1;
+    }
+
+    // updateDisplay(winner);
+  }
+
+
+};
+
+const viewController = function viewController() {
+  const content = document.querySelector('content');
+  // const playerOneScoreDisplay 
+};
+
+const generateContent = function generateContent() {
+  gameBoard();
+  scoreKeeper();
+};
+
+generateContent();
