@@ -18,6 +18,7 @@ header {
 }
 
 content {
+    position: relative;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -49,4 +50,9 @@ content {
     font-size: 20px;
     width: 125px;
     height: 50px;
+}
+
+.play-again-button {
+    position: absolute;
+    top: -50px;
 }
