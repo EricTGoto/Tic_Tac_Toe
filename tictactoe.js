@@ -1,3 +1,29 @@
+const mapping = (function createMapping() {
+  const squareMappingToText = new Map();
+  squareMappingToText.set(0, 'zero');
+  squareMappingToText.set(1, 'one');
+  squareMappingToText.set(2, 'two');
+  squareMappingToText.set(3, 'three');
+  squareMappingToText.set(4, 'four');
+  squareMappingToText.set(5, 'five');
+  squareMappingToText.set(6, 'six');
+  squareMappingToText.set(7, 'seven');
+  squareMappingToText.set(8, 'eight');
+
+  const squareMappingToNumber = new Map();
+  squareMappingToNumber.set('zero', 0);
+  squareMappingToNumber.set('one', 1);
+  squareMappingToNumber.set('two', 2);
+  squareMappingToNumber.set('three', 3);
+  squareMappingToNumber.set('four', 4);
+  squareMappingToNumber.set('five', 5);
+  squareMappingToNumber.set('six', 6);
+  squareMappingToNumber.set('seven', 7);
+  squareMappingToNumber.set('eight', 8);
+
+  return { squareMappingToText, squareMappingToNumber };
+}());
+
 const scoreKeeper = (function scoreKeeper() {
   let playerOneScore = 0;
   let playerTwoScore = 0;
@@ -55,37 +81,6 @@ const scoreKeeper = (function scoreKeeper() {
     updateScore,
     getPlayerScore,
   };
-}());
-
-const viewController = (function viewController() {
-  const content = document.querySelector('content');
-
-  function createPlayAgainButton() {
-    const playAgainButton = document.createElement('div');
-    playAgainButton.classList.add('play-again-button');
-    playAgainButton.textContent = 'Play again?';
-    content.appendChild(playAgainButton);
-
-    return playAgainButton;
-  }
-
-  function updateScoreElements(winner) {
-    let playerScoreElement;
-    if (winner === 1) {
-      playerScoreElement = document.querySelector('.player-one');
-    } else if (winner === 2) {
-      playerScoreElement = document.querySelector('.player-two');
-    } else {
-      playerScoreElement = document.querySelector('score tie');
-    }
-    const previousText = playerScoreElement.textContent;
-    console.log(previousText);
-    const newScore = scoreKeeper.getPlayerScore(winner);
-    const newText = `${previousText.substring(0, previousText.length - 1)}${newScore}`;
-    console.log(newText);
-    playerScoreElement.textContent = newText;
-  }
-  return { createPlayAgainButton, updateScoreElements };
 }());
 
 const gameController = (function gameController() {
@@ -185,6 +180,18 @@ const gameController = (function gameController() {
     board[row][col] = turn;
   };
 
+  const resetGameVariables = function resetGameVariables() {
+    gameOver = false;
+    turn = 1;
+
+    // fill board with 0s so it can be filled again
+    for (let i = 0; i < board.length; i += 1) {
+      for (let j = 0; j < board.length; j += 1) {
+        board[i][j] = 0;
+      }
+    }
+  };
+
   return {
     getGameState,
     getTurn,
@@ -194,81 +201,102 @@ const gameController = (function gameController() {
     checkValidSquare,
     checkThreeInARow,
     updateBoard,
+    resetGameVariables,
   };
 }());
 
-const mapping = (function createMapping() {
-  const squareMappingToText = new Map();
-  squareMappingToText.set(0, 'zero');
-  squareMappingToText.set(1, 'one');
-  squareMappingToText.set(2, 'two');
-  squareMappingToText.set(3, 'three');
-  squareMappingToText.set(4, 'four');
-  squareMappingToText.set(5, 'five');
-  squareMappingToText.set(6, 'six');
-  squareMappingToText.set(7, 'seven');
-  squareMappingToText.set(8, 'eight');
+const viewController = (function viewController() {
+  const content = document.querySelector('content');
+  const squares = [];
 
-  const squareMappingToNumber = new Map();
-  squareMappingToNumber.set('zero', 0);
-  squareMappingToNumber.set('one', 1);
-  squareMappingToNumber.set('two', 2);
-  squareMappingToNumber.set('three', 3);
-  squareMappingToNumber.set('four', 4);
-  squareMappingToNumber.set('five', 5);
-  squareMappingToNumber.set('six', 6);
-  squareMappingToNumber.set('seven', 7);
-  squareMappingToNumber.set('eight', 8);
+  function getSquares() {
+    return squares;
+  }
 
-  return { squareMappingToText, squareMappingToNumber };
+  // make all squares empty, set turn to 1
+  function resetBoard() {
+    for (let i = 0; i < squares.length; i += 1) {
+      squares[i].style.backgroundColor = 'white';
+    }
+    gameController.resetGameVariables();
+  }
+
+  function createPlayAgainButton() {
+    const playAgainButton = document.createElement('div');
+    playAgainButton.classList.add('play-again-button');
+    playAgainButton.textContent = 'Play again?';
+    content.appendChild(playAgainButton);
+    playAgainButton.addEventListener('click', resetBoard);
+    return playAgainButton;
+  }
+
+  function updateScoreElements(winner) {
+    let playerScoreElement;
+    if (winner === 1) {
+      playerScoreElement = document.querySelector('.player-one');
+    } else if (winner === 2) {
+      playerScoreElement = document.querySelector('.player-two');
+    } else {
+      playerScoreElement = document.querySelector('score tie');
+    }
+    const previousText = playerScoreElement.textContent;
+    console.log(previousText);
+    const newScore = scoreKeeper.getPlayerScore(winner);
+    const newText = `${previousText.substring(0, previousText.length - 1)}${newScore}`;
+    console.log(newText);
+    playerScoreElement.textContent = newText;
+  }
+
+  const squareClicked = function squareClicked(e) {
+    const squareElement = e.target;
+    const square = squareElement.className.split(' ')[1];
+    const squareAsNum = mapping.squareMappingToNumber.get(square);
+    const turn = gameController.getTurn();
+    // check if player can make the move before updating DOM and backend
+    if (gameController.checkValidSquare(squareAsNum) && !gameController.getGameState()) {
+      gameController.getTurn() === 1 ? squareElement.style.backgroundColor = 'red' : squareElement.style.backgroundColor = 'black';
+      gameController.updateBoard(squareAsNum);
+
+      // check if any player has won
+      if (gameController.checkThreeInARow(squareAsNum)) {
+        gameController.gameFinished();
+        console.log(`game is over ${gameController.getTurn()} has won`);
+        createPlayAgainButton();
+        scoreKeeper.updateScore(turn);
+        updateScoreElements(turn);
+      }
+      gameController.changeTurn();
+    }
+  };
+
+  const createSquare = function createSquare(squareNumber) {
+    const tictactoeSquare = document.createElement('div');
+    tictactoeSquare.classList.add('tictactoe-square');
+    tictactoeSquare.classList.add(mapping.squareMappingToText.get(squareNumber));
+    tictactoeSquare.addEventListener('click', squareClicked);
+    return tictactoeSquare;
+  };
+
+  const createGameBoard = function gameBoard() {
+    const tictactoeContainer = document.createElement('div');
+    tictactoeContainer.classList.add('tictactoe-grid');
+
+    for (let i = 0; i < 9; i += 1) {
+      const square = createSquare(i);
+      tictactoeContainer.appendChild(square);
+      squares.push(square);
+    }
+
+    content.appendChild(tictactoeContainer);
+  };
+
+  return {
+    createPlayAgainButton, updateScoreElements, createGameBoard, getSquares,
+  };
 }());
 
-const squareClicked = function squareClicked(e) {
-  const squareElement = e.target;
-  const square = squareElement.className.split(' ')[1];
-  const squareAsNum = mapping.squareMappingToNumber.get(square);
-  const turn = gameController.getTurn();
-
-  // check if player can make the move before updating DOM and backend
-  if (gameController.checkValidSquare(squareAsNum) && !gameController.getGameState()) {
-    gameController.getTurn() === 1 ? squareElement.style.backgroundColor = 'red' : squareElement.style.backgroundColor = 'black';
-    gameController.updateBoard(squareAsNum);
-
-    // check if any player has won
-    if (gameController.checkThreeInARow(squareAsNum)) {
-      gameController.gameFinished();
-      console.log(`game is over ${gameController.getTurn()} has won`);
-      viewController.createPlayAgainButton();
-      scoreKeeper.updateScore(turn);
-      viewController.updateScoreElements(turn);
-    }
-    gameController.changeTurn();
-  }
+const initializeGame = function generateContent() {
+  viewController.createGameBoard();
 };
 
-const createSquare = function createSquare(squareNumber) {
-  const tictactoeSquare = document.createElement('div');
-  tictactoeSquare.classList.add('tictactoe-square');
-  tictactoeSquare.classList.add(mapping.squareMappingToText.get(squareNumber));
-  tictactoeSquare.addEventListener('click', squareClicked);
-  return tictactoeSquare;
-};
-
-const gameBoard = function gameBoard() {
-  const tictactoeContainer = document.createElement('div');
-  tictactoeContainer.classList.add('tictactoe-grid');
-
-  for (let i = 0; i < 9; i += 1) {
-    const square = createSquare(i);
-    tictactoeContainer.appendChild(square);
-  }
-
-  const content = document.querySelector('content');
-  content.appendChild(tictactoeContainer);
-};
-
-const generateContent = function generateContent() {
-  gameBoard();
-};
-
-generateContent();
+initializeGame();
