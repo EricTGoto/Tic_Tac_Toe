@@ -29,31 +29,6 @@ const scoreKeeper = (function scoreKeeper() {
   let playerTwoScore = 0;
   let tieCount = 0;
 
-  const scoreContainer = document.createElement('div');
-  scoreContainer.classList.add('score-container');
-
-  const playerOneScoreDisplay = document.createElement('div');
-  playerOneScoreDisplay.classList.add('score');
-  playerOneScoreDisplay.classList.add('player-one');
-  playerOneScoreDisplay.textContent = `Player One: ${playerOneScore}`;
-
-  const playerTwoScoreDisplay = document.createElement('div');
-  playerTwoScoreDisplay.classList.add('score');
-  playerTwoScoreDisplay.classList.add('player-two');
-  playerTwoScoreDisplay.textContent = `Player Two: ${playerTwoScore}`;
-
-  const tieDisplay = document.createElement('div');
-  tieDisplay.classList.add('score');
-  tieDisplay.classList.add('tie');
-  tieDisplay.textContent = `Tie: ${tieCount}`;
-
-  scoreContainer.appendChild(playerOneScoreDisplay);
-  scoreContainer.appendChild(tieDisplay);
-  scoreContainer.appendChild(playerTwoScoreDisplay);
-
-  const content = document.querySelector('content');
-  content.appendChild(scoreContainer);
-
   function getPlayerScore(player) {
     if (player === 0) {
       return tieCount;
@@ -230,6 +205,32 @@ const viewController = (function viewController() {
     return playAgainButton;
   }
 
+  function createScores() {
+    const scoreContainer = document.createElement('div');
+    scoreContainer.classList.add('score-container');
+
+    const playerOneScoreDisplay = document.createElement('div');
+    playerOneScoreDisplay.classList.add('score');
+    playerOneScoreDisplay.classList.add('player-one');
+    playerOneScoreDisplay.textContent = 'Player One: 0';
+
+    const playerTwoScoreDisplay = document.createElement('div');
+    playerTwoScoreDisplay.classList.add('score');
+    playerTwoScoreDisplay.classList.add('player-two');
+    playerTwoScoreDisplay.textContent = 'Player Two: 0';
+
+    const tieDisplay = document.createElement('div');
+    tieDisplay.classList.add('score');
+    tieDisplay.classList.add('tie');
+    tieDisplay.textContent = 'Tie: 0';
+
+    scoreContainer.appendChild(playerOneScoreDisplay);
+    scoreContainer.appendChild(tieDisplay);
+    scoreContainer.appendChild(playerTwoScoreDisplay);
+
+    content.appendChild(scoreContainer);
+  }
+
   function updateScoreElements(winner) {
     let playerScoreElement;
     if (winner === 1) {
@@ -291,12 +292,13 @@ const viewController = (function viewController() {
   };
 
   return {
-    createPlayAgainButton, updateScoreElements, createGameBoard, getSquares,
+    createPlayAgainButton, createScores, updateScoreElements, createGameBoard, getSquares,
   };
 }());
 
 const initializeGame = function generateContent() {
   viewController.createGameBoard();
+  viewController.createScores();
 };
 
 initializeGame();
