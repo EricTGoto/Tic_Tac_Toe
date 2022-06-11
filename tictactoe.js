@@ -296,6 +296,18 @@ const viewController = (function viewController() {
   };
 }());
 
+// easy AI just makes random moves
+function easyAI() {
+
+}
+
+// makes the optimal move, so it never loses
+function impossibleAI() {
+
+}
+
+// hard AI plays like the impossible AI 80% of the time
+
 const initializeGame = function generateContent() {
   viewController.createGameBoard();
   viewController.createScores();
