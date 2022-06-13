@@ -90,6 +90,18 @@ const gameController = (function gameController() {
     return getBoard()[row][col] === 0;
   };
 
+  const getValidSquares = function getValidSquares() {
+    let squareNumber = 0;
+    const validSquares = [];
+    for (let i = 0; i < board.length; i += 1) {
+      for (let j = 0; j < board.length; j += 1) {
+        if (checkValidSquare(squareNumber)) validSquares.push(squareNumber);
+        squareNumber += 1;
+      }
+    }
+    return validSquares;
+  };
+
   // const rowCol = function rowCol(square) {
   //   const row = Math.floor(square / 3);
   //   const col = square % 3;
@@ -173,6 +185,7 @@ const gameController = (function gameController() {
     gameFinished,
     changeTurn,
     getBoard,
+    getValidSquares,
     checkValidSquare,
     checkThreeInARow,
     updateBoard,
@@ -267,6 +280,9 @@ const viewController = (function viewController() {
         updateScoreElements(turn);
       }
       gameController.changeTurn();
+      console.log(gameController.checkValidSquare(squareAsNum));
+      console.log(gameController.getBoard()[0][0]);
+      console.log(gameController.getValidSquares());
     }
   };
 
@@ -308,7 +324,7 @@ function impossibleAI() {
 
 // hard AI plays like the impossible AI 80% of the time
 
-const initializeGame = function generateContent() {
+const initializeGame = function initializeGame() {
   viewController.createGameBoard();
   viewController.createScores();
 };
