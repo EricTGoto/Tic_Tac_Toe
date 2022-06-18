@@ -109,56 +109,19 @@ const gameController = (function gameController() {
   //   return { row, col };
   // };
 
-  function checkThreeInARow(square) {
-    // need to check three cases: horizontal, vertical, diagonal
+  // there are 8 win conditions
+  function checkThreeInARow(player) {
     const tempBoard = getBoard();
-    const row = Math.floor(square / 3);
-    const col = square % 3;
-    let horizontal = true;
-    let vertical = true;
-    let diagonal = true;
-    const positiveDiagonalSet = [2, 4, 6];
-    const negativeDiagonalSet = [0, 4, 8];
-
-    // horizontal check
-    for (let i = 0; i < 3; i += 1) {
-      if (tempBoard[row][i] !== turn) {
-        horizontal = false;
-        break;
-      }
-    }
-
-    // vertical check
-    for (let i = 0; i < 3; i += 1) {
-      if (tempBoard[i][col] !== turn) {
-        vertical = false;
-        break;
-      }
-    }
-
-    if ((square % 2) === 0) {
-      // positive diagonal check
-      if (positiveDiagonalSet.includes(square)) {
-        for (let r = 2, c = 0; c < 3; c += 1, r -= 0) {
-          if (tempBoard[r][c] !== turn) {
-            diagonal = false;
-          }
-        }
-      }
-
-      // negative diagonal check
-      if (negativeDiagonalSet.includes(square)) {
-        for (let i = 0; i < 3; i += 1) {
-          if (tempBoard[i][i] !== turn) {
-            diagonal = false;
-          }
-        }
-      }
-    } else {
-      diagonal = false;
-    }
-
-    return horizontal || vertical || diagonal;
+    return (
+      (tempBoard[0][0] === player && tempBoard[0][1] === player && tempBoard[0][2] === player)
+      || (tempBoard[0][0] === player && tempBoard[1][0] === player && tempBoard[2][0] === player)
+      || (tempBoard[0][0] === player && tempBoard[1][1] === player && tempBoard[2][2] === player)
+      || (tempBoard[0][1] === player && tempBoard[1][1] === player && tempBoard[2][1] === player)
+      || (tempBoard[0][2] === player && tempBoard[1][2] === player && tempBoard[2][2] === player)
+      || (tempBoard[0][2] === player && tempBoard[1][1] === player && tempBoard[2][0] === player)
+      || (tempBoard[1][0] === player && tempBoard[1][1] === player && tempBoard[1][2] === player)
+      || (tempBoard[2][0] === player && tempBoard[2][1] === player && tempBoard[2][2] === player)
+    );
   }
 
   const updateBoard = function updateBoard(square) {
@@ -266,13 +229,15 @@ const viewController = (function viewController() {
     const square = squareElement.className.split(' ')[1];
     const squareAsNum = mapping.squareMappingToNumber.get(square);
     const turn = gameController.getTurn();
+    console.log(turn);
     // check if player can make the move before updating DOM and backend
     if (gameController.checkValidSquare(squareAsNum) && !gameController.getGameState()) {
+      // eslint-disable-next-line max-len
       gameController.getTurn() === 1 ? squareElement.style.backgroundColor = 'red' : squareElement.style.backgroundColor = 'black';
       gameController.updateBoard(squareAsNum);
-
-      // check if any player has won
-      if (gameController.checkThreeInARow(squareAsNum)) {
+      console.log(gameController.checkThreeInARow(turn));
+      // check if player has won
+      if (gameController.checkThreeInARow(turn)) {
         gameController.gameFinished();
         console.log(`game is over ${gameController.getTurn()} has won`);
         createPlayAgainButton();
@@ -280,9 +245,6 @@ const viewController = (function viewController() {
         updateScoreElements(turn);
       }
       gameController.changeTurn();
-      console.log(gameController.checkValidSquare(squareAsNum));
-      console.log(gameController.getBoard()[0][0]);
-      console.log(gameController.getValidSquares());
     }
   };
 
