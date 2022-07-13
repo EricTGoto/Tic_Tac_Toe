@@ -28,13 +28,13 @@ content {
 .tictactoe-grid {
     display: grid;
     grid-template: 1fr 1fr 1fr / 1fr 1fr 1fr;
-    border: 1px black solid;
-    width: 600px;
-    height: 600px;
+    width: 60vh;
 }
 
 .tictactoe-square {
     border: 1px black solid;
+    width: 100%;
+    padding-bottom: 100%;
 }
 
 .score-container {
