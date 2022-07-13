@@ -264,7 +264,7 @@ const viewController = (function viewController() {
       }
       gameController.changeTurn();
     }
-    easyAI();
+    // easyAI();
   };
 
   const createSquare = function createSquare(squareNumber) {
