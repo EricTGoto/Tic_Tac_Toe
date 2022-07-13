@@ -12,6 +12,6 @@
     },
     "rules": {
         "no-unused-expressions": 0,
-        "max-len": ["error", {"code": 110}]
+        "max-len": ["error", {"code": 100}]
     }
 }

@@ -58,6 +58,7 @@ const scoreKeeper = (function scoreKeeper() {
   };
 }());
 
+
 const gameController = (function gameController() {
   let gameOver = false;
   let turn = 1;
@@ -156,6 +157,23 @@ const gameController = (function gameController() {
   };
 }());
 
+// easy AI just makes random moves
+function easyAI() {
+  const validSquares = gameController.getValidSquares();
+  console.log(validSquares);
+  const randomSquare = validSquares[Math.floor(Math.random() * validSquares.length)];
+  const squareText = mapping.squareMappingToText.get(randomSquare);
+  console.log(squareText);
+  const squareElement = document.querySelector(`.${squareText}`);
+  squareElement.style.backgroundColor = "orange";
+  gameController.updateBoard(randomSquare);
+}
+
+// makes the optimal move, so it never loses
+function impossibleAI() {
+
+}
+
 const viewController = (function viewController() {
   const content = document.querySelector('content');
   const squares = [];
@@ -246,6 +264,7 @@ const viewController = (function viewController() {
       }
       gameController.changeTurn();
     }
+    easyAI();
   };
 
   const createSquare = function createSquare(squareNumber) {
@@ -274,15 +293,7 @@ const viewController = (function viewController() {
   };
 }());
 
-// easy AI just makes random moves
-function easyAI() {
 
-}
-
-// makes the optimal move, so it never loses
-function impossibleAI() {
-
-}
 
 // hard AI plays like the impossible AI 80% of the time
 
