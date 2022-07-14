@@ -282,6 +282,7 @@ const viewController = function viewController(mode) {
         gameController.gameFinished();
         scoreKeeper.updateScore(0);
         updateScoreElements(0);
+        createPlayAgainButton();
       }
       const gameOver = gameController.getGameState();
 
@@ -294,6 +295,7 @@ const viewController = function viewController(mode) {
             scoreKeeper.updateScore(gameController.getTurn());
             updateScoreElements(gameController.getTurn());
             console.log('AI has won');
+            createPlayAgainButton();
           }
           gameController.changeTurn();
         } else if (mode === 1) {
