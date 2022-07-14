@@ -58,7 +58,6 @@ const scoreKeeper = (function scoreKeeper() {
   };
 }());
 
-
 const gameController = (function gameController() {
   let gameOver = false;
   let turn = 1;
@@ -251,6 +250,7 @@ const viewController = (function viewController() {
     // check if player can make the move before updating DOM and backend
     if (gameController.checkValidSquare(squareAsNum) && !gameController.getGameState()) {
       // eslint-disable-next-line max-len
+      // eslint-disable-next-line no-unused-expressions
       gameController.getTurn() === 1 ? squareElement.style.backgroundColor = 'red' : squareElement.style.backgroundColor = 'black';
       gameController.updateBoard(squareAsNum);
       console.log(gameController.checkThreeInARow(turn));
@@ -292,8 +292,6 @@ const viewController = (function viewController() {
     createPlayAgainButton, createScores, updateScoreElements, createGameBoard, getSquares,
   };
 }());
-
-
 
 // hard AI plays like the impossible AI 80% of the time
 

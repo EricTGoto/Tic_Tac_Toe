@@ -1,7 +1,28 @@
 {
   "devDependencies": {
-    "eslint": "^8.16.0",
+    "eslint": "^8.19.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.26.0"
+  },
+  "name": "tic_tac_toe",
+  "description": "Tic Tac Toe on the browser!",
+  "version": "1.0.0",
+  "main": "tictactoe.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EricTGoto/Tic_Tac_Toe.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EricTGoto/Tic_Tac_Toe/issues"
+  },
+  "homepage": "https://github.com/EricTGoto/Tic_Tac_Toe#readme",
+  "dependencies": {
+    "dotenv": "^16.0.1",
+    "mongoose": "^6.4.4"
   }
 }
