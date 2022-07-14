@@ -275,28 +275,28 @@ const viewController = function viewController(mode) {
         return;
       }
       gameController.changeTurn();
-    }
 
-    if (gameController.checkTie()) {
-      gameController.gameFinished();
-      scoreKeeper.updateScore(0);
-      updateScoreElements(0);
-    }
-    const gameOver = gameController.getGameState();
+      if (gameController.checkTie()) {
+        gameController.gameFinished();
+        scoreKeeper.updateScore(0);
+        updateScoreElements(0);
+      }
+      const gameOver = gameController.getGameState();
 
-    if (!gameOver) {
-      // mode 0 is easy AI, 1 impossible
-      if (mode === 0) {
-        easyAI();
-        if (gameController.checkThreeInARow()) {
-          gameController.gameFinished();
-          scoreKeeper.updateScore(gameController.getTurn());
-          updateScoreElements(gameController.getTurn());
-          console.log('AI has won');
+      if (!gameOver) {
+        // mode 0 is easy AI, 1 impossible
+        if (mode === 0) {
+          easyAI();
+          if (gameController.checkThreeInARow()) {
+            gameController.gameFinished();
+            scoreKeeper.updateScore(gameController.getTurn());
+            updateScoreElements(gameController.getTurn());
+            console.log('AI has won');
+          }
+          gameController.changeTurn();
+        } else if (mode === 1) {
+          impossibleAI();
         }
-        gameController.changeTurn();
-      } else if (mode === 1) {
-        impossibleAI();
       }
     }
   };
