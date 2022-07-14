@@ -244,10 +244,12 @@ const viewController = function viewController(mode) {
     } else {
       playerScoreElement = document.querySelector('.tie');
     }
-    const previousText = playerScoreElement.textContent;
+    // extract just the bit before :
+    const previousText = (playerScoreElement.textContent).split(':')[0];
     console.log(previousText);
+
     const newScore = scoreKeeper.getPlayerScore(winner);
-    const newText = `${previousText.substring(0, previousText.length - 1)}${newScore}`;
+    const newText = `${previousText}${newScore}`;
     console.log(newText);
     playerScoreElement.textContent = newText;
   }
