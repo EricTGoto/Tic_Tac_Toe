@@ -249,7 +249,7 @@ const viewController = function viewController(mode) {
     console.log(previousText);
 
     const newScore = scoreKeeper.getPlayerScore(winner);
-    const newText = `${previousText}${newScore}`;
+    const newText = `${previousText}: ${newScore}`;
     console.log(newText);
     playerScoreElement.textContent = newText;
   }
