@@ -109,9 +109,10 @@ const gameController = (function gameController() {
   //   return { row, col };
   // };
 
-  // there are 8 win conditions
-  function checkThreeInARow(player) {
+  // there are 8 win conditions, returns true if there is a win
+  function checkThreeInARow() {
     const tempBoard = getBoard();
+    const player = getTurn();
     return (
       (tempBoard[0][0] === player && tempBoard[0][1] === player && tempBoard[0][2] === player)
       || (tempBoard[0][0] === player && tempBoard[1][0] === player && tempBoard[2][0] === player)
@@ -122,6 +123,15 @@ const gameController = (function gameController() {
       || (tempBoard[1][0] === player && tempBoard[1][1] === player && tempBoard[1][2] === player)
       || (tempBoard[2][0] === player && tempBoard[2][1] === player && tempBoard[2][2] === player)
     );
+  }
+
+  // returns true if the game is a tie
+  function checkTie() {
+    const tempBoard = getBoard();
+    const flattenedBoard = tempBoard.flat();
+    const found = flattenedBoard.find((square) => square === 0);
+    console.log(found);
+    return found !== 0;
   }
 
   const updateBoard = function updateBoard(square) {
@@ -151,6 +161,7 @@ const gameController = (function gameController() {
     getValidSquares,
     checkValidSquare,
     checkThreeInARow,
+    checkTie,
     updateBoard,
     resetGameVariables,
   };
@@ -173,7 +184,7 @@ function impossibleAI() {
 
 }
 
-const viewController = (function viewController() {
+const viewController = function viewController(mode) {
   const content = document.querySelector('content');
   const squares = [];
 
@@ -231,7 +242,7 @@ const viewController = (function viewController() {
     } else if (winner === 2) {
       playerScoreElement = document.querySelector('.player-two');
     } else {
-      playerScoreElement = document.querySelector('score tie');
+      playerScoreElement = document.querySelector('.tie');
     }
     const previousText = playerScoreElement.textContent;
     console.log(previousText);
@@ -246,25 +257,48 @@ const viewController = (function viewController() {
     const square = squareElement.className.split(' ')[1];
     const squareAsNum = mapping.squareMappingToNumber.get(square);
     const turn = gameController.getTurn();
-    console.log(turn);
+    console.log("turn is", turn);
     // check if player can make the move before updating DOM and backend
     if (gameController.checkValidSquare(squareAsNum) && !gameController.getGameState()) {
       // eslint-disable-next-line max-len
       // eslint-disable-next-line no-unused-expressions
       gameController.getTurn() === 1 ? squareElement.style.backgroundColor = 'red' : squareElement.style.backgroundColor = 'black';
       gameController.updateBoard(squareAsNum);
-      console.log(gameController.checkThreeInARow(turn));
+      console.log(gameController.checkThreeInARow());
       // check if player has won
-      if (gameController.checkThreeInARow(turn)) {
+      if (gameController.checkThreeInARow()) {
         gameController.gameFinished();
         console.log(`game is over ${gameController.getTurn()} has won`);
         createPlayAgainButton();
         scoreKeeper.updateScore(turn);
         updateScoreElements(turn);
+        return;
       }
       gameController.changeTurn();
     }
-    // easyAI();
+
+    if (gameController.checkTie()) {
+      gameController.gameFinished();
+      scoreKeeper.updateScore(0);
+      updateScoreElements(0);
+    }
+    const gameOver = gameController.getGameState();
+
+    if (!gameOver) {
+      // mode 0 is easy AI, 1 impossible
+      if (mode === 0) {
+        easyAI();
+        if (gameController.checkThreeInARow()) {
+          gameController.gameFinished();
+          scoreKeeper.updateScore(gameController.getTurn());
+          updateScoreElements(gameController.getTurn());
+          console.log('AI has won');
+        }
+        gameController.changeTurn();
+      } else if (mode === 1) {
+        impossibleAI();
+      }
+    }
   };
 
   const createSquare = function createSquare(squareNumber) {
@@ -288,16 +322,15 @@ const viewController = (function viewController() {
     content.appendChild(tictactoeContainer);
   };
 
+  createGameBoard();
+  createScores();
   return {
     createPlayAgainButton, createScores, updateScoreElements, createGameBoard, getSquares,
   };
-}());
-
-// hard AI plays like the impossible AI 80% of the time
-
-const initializeGame = function initializeGame() {
-  viewController.createGameBoard();
-  viewController.createScores();
 };
 
-initializeGame();
+const initializeGame = function initializeGame(mode) {
+  viewController(mode);
+};
+
+initializeGame(0);
