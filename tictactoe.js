@@ -51,9 +51,16 @@ const scoreKeeper = (function scoreKeeper() {
     return winner;
   }
 
+  function resetScore() {
+    playerOneScore = 0;
+    playerTwoScore = 0;
+    tieCount = 0;
+  }
+
   return {
     updateScore,
     getPlayerScore,
+    resetScore,
   };
 }());
 
@@ -129,7 +136,6 @@ const gameController = (function gameController() {
     const tempBoard = getBoard();
     const flattenedBoard = tempBoard.flat();
     const found = flattenedBoard.find((square) => square === 0);
-    console.log(found);
     return found !== 0;
   }
 
@@ -202,6 +208,7 @@ const viewController = (function viewController() {
       squares[i].style.backgroundColor = 'white';
     }
     gameController.resetGameVariables();
+    content.removeChild(document.querySelector('.play-again-button'));
   }
 
   function createPlayAgainButton() {
@@ -213,19 +220,20 @@ const viewController = (function viewController() {
     return playAgainButton;
   }
 
-  function createScores() {
+  function createScores(mode) {
     const scoreContainer = document.createElement('div');
     scoreContainer.classList.add('score-container');
 
     const playerOneScoreDisplay = document.createElement('div');
     playerOneScoreDisplay.classList.add('score');
     playerOneScoreDisplay.classList.add('player-one');
-    playerOneScoreDisplay.textContent = 'Player One: 0';
+    playerOneScoreDisplay.textContent = 'Player 1: 0';
 
     const playerTwoScoreDisplay = document.createElement('div');
     playerTwoScoreDisplay.classList.add('score');
     playerTwoScoreDisplay.classList.add('player-two');
-    playerTwoScoreDisplay.textContent = 'Player Two: 0';
+    const playerTwoDisplayText = mode === 2 ? 'Player 2: 0' : 'Player 2(AI) : 0';
+    playerTwoScoreDisplay.textContent = playerTwoDisplayText;
 
     const tieDisplay = document.createElement('div');
     tieDisplay.classList.add('score');
@@ -270,13 +278,14 @@ const viewController = (function viewController() {
   };
 }());
 
+// contains the functionality needed to change modes
 const initializeGame = function initializeGame(mode) {
   const squareClicked = function squareClicked(e) {
     const squareElement = e.target;
     const square = squareElement.className.split(' ')[1];
     const squareAsNum = mapping.squareMappingToNumber.get(square);
     const turn = gameController.getTurn();
-    console.log("turn is", turn);
+    console.log('turn is', turn);
     // check if player can make the move before updating DOM and backend
     if (gameController.checkValidSquare(squareAsNum) && !gameController.getGameState()) {
       // eslint-disable-next-line max-len
@@ -336,9 +345,19 @@ const initializeGame = function initializeGame(mode) {
     document.querySelector('content').appendChild(tictactoeContainer);
   };
 
+  const modeButton = document.querySelector('.dropbtn');
+  if (mode === 0) {
+    modeButton.textContent = 'Easy AI';
+  } else if (mode === 1) {
+    modeButton.textContent = 'Impossible AI';
+  } else {
+    modeButton.textContent = '2 Player';
+  }
+
+  scoreKeeper.resetScore();
   document.querySelector('content').replaceChildren();
   createGameBoard();
-  viewController.createScores();
+  viewController.createScores(mode);
 };
 
 function initializeModeButtons() {
@@ -347,10 +366,9 @@ function initializeModeButtons() {
   const twoPlayerModeButton = document.querySelector('.two-player');
 
   easyModeButton.addEventListener('click', () => initializeGame(0));
-  impossibleModeButton.addEventListener('click', () => console.log('hi'));
+  impossibleModeButton.addEventListener('click', () => initializeGame(1));
   twoPlayerModeButton.addEventListener('click', () => initializeGame(2));
 }
-
 
 initializeGame(0);
 initializeModeButtons();
