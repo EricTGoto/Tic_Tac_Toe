@@ -49,7 +49,6 @@ const scoreKeeper = (function scoreKeeper() {
       playerTwoScore += 1;
     }
     return winner;
-    // updateDisplay(winner);
   }
 
   return {
@@ -175,7 +174,7 @@ function easyAI() {
   const squareText = mapping.squareMappingToText.get(randomSquare);
   console.log(squareText);
   const squareElement = document.querySelector(`.${squareText}`);
-  squareElement.style.backgroundColor = "orange";
+  squareElement.style.backgroundColor = 'orange';
   gameController.updateBoard(randomSquare);
 }
 
@@ -184,6 +183,7 @@ function impossibleAI() {
 
 }
 
+// viewController is in charge of creating and manipulating the DOM
 const viewController = function viewController(mode) {
   const content = document.querySelector('content');
   const squares = [];
@@ -333,8 +333,20 @@ const viewController = function viewController(mode) {
   };
 };
 
+
+function initializeModeButtons() {
+  const easyModeButton = document.querySelector('.easy');
+  const impossibleModeButton = document.querySelector('.impossible');
+  const twoPlayerModeButton = document.querySelector('.two-player');
+
+  impossibleModeButton.addEventListener('click', () => console.log('hi'));
+  twoPlayerModeButton.addEventListener('click', () => viewController(2));
+
+}
+
 const initializeGame = function initializeGame(mode) {
   viewController(mode);
 };
 
 initializeGame(0);
+initializeModeButtons();
