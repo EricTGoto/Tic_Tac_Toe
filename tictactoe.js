@@ -184,14 +184,18 @@ function impossibleAI() {
 }
 
 // viewController is in charge of creating and manipulating the DOM
-const viewController = function viewController(mode) {
+// it is instantiated once as an IIFE
+const viewController = (function viewController() {
   const content = document.querySelector('content');
-  const squares = [];
+  let squares = [];
 
   function getSquares() {
     return squares;
   }
 
+  function setSquares(newSquares) {
+    squares = [...newSquares];
+  }
   // make all squares empty, set turn to 1
   function resetBoard() {
     for (let i = 0; i < squares.length; i += 1) {
@@ -254,6 +258,19 @@ const viewController = function viewController(mode) {
     playerScoreElement.textContent = newText;
   }
 
+  const createSquare = function createSquare(squareNumber) {
+    const tictactoeSquare = document.createElement('div');
+    tictactoeSquare.classList.add('tictactoe-square');
+    tictactoeSquare.classList.add(mapping.squareMappingToText.get(squareNumber));
+    return tictactoeSquare;
+  };
+
+  return {
+    createPlayAgainButton, createScores, updateScoreElements, getSquares, setSquares, createSquare,
+  };
+}());
+
+const initializeGame = function initializeGame(mode) {
   const squareClicked = function squareClicked(e) {
     const squareElement = e.target;
     const square = squareElement.className.split(' ')[1];
@@ -271,9 +288,9 @@ const viewController = function viewController(mode) {
       if (gameController.checkThreeInARow()) {
         gameController.gameFinished();
         console.log(`game is over ${gameController.getTurn()} has won`);
-        createPlayAgainButton();
+        viewController.createPlayAgainButton();
         scoreKeeper.updateScore(turn);
-        updateScoreElements(turn);
+        viewController.updateScoreElements(turn);
         return;
       }
       gameController.changeTurn();
@@ -281,8 +298,8 @@ const viewController = function viewController(mode) {
       if (gameController.checkTie()) {
         gameController.gameFinished();
         scoreKeeper.updateScore(0);
-        updateScoreElements(0);
-        createPlayAgainButton();
+        viewController.updateScoreElements(0);
+        viewController.createPlayAgainButton();
       }
       const gameOver = gameController.getGameState();
 
@@ -293,9 +310,9 @@ const viewController = function viewController(mode) {
           if (gameController.checkThreeInARow()) {
             gameController.gameFinished();
             scoreKeeper.updateScore(gameController.getTurn());
-            updateScoreElements(gameController.getTurn());
+            viewController.updateScoreElements(gameController.getTurn());
             console.log('AI has won');
-            createPlayAgainButton();
+            viewController.createPlayAgainButton();
           }
           gameController.changeTurn();
         } else if (mode === 1) {
@@ -305,48 +322,35 @@ const viewController = function viewController(mode) {
     }
   };
 
-  const createSquare = function createSquare(squareNumber) {
-    const tictactoeSquare = document.createElement('div');
-    tictactoeSquare.classList.add('tictactoe-square');
-    tictactoeSquare.classList.add(mapping.squareMappingToText.get(squareNumber));
-    tictactoeSquare.addEventListener('click', squareClicked);
-    return tictactoeSquare;
-  };
-
   const createGameBoard = function gameBoard() {
     const tictactoeContainer = document.createElement('div');
     tictactoeContainer.classList.add('tictactoe-grid');
-
+    const squares = [];
     for (let i = 0; i < 9; i += 1) {
-      const square = createSquare(i);
+      const square = viewController.createSquare(i);
       tictactoeContainer.appendChild(square);
+      square.addEventListener('click', squareClicked);
       squares.push(square);
     }
-
-    content.appendChild(tictactoeContainer);
+    viewController.setSquares(squares);
+    document.querySelector('content').appendChild(tictactoeContainer);
   };
 
+  document.querySelector('content').replaceChildren();
   createGameBoard();
-  createScores();
-  return {
-    createPlayAgainButton, createScores, updateScoreElements, createGameBoard, getSquares,
-  };
+  viewController.createScores();
 };
-
 
 function initializeModeButtons() {
   const easyModeButton = document.querySelector('.easy');
   const impossibleModeButton = document.querySelector('.impossible');
   const twoPlayerModeButton = document.querySelector('.two-player');
 
+  easyModeButton.addEventListener('click', () => initializeGame(0));
   impossibleModeButton.addEventListener('click', () => console.log('hi'));
-  twoPlayerModeButton.addEventListener('click', () => viewController(2));
-
+  twoPlayerModeButton.addEventListener('click', () => initializeGame(2));
 }
 
-const initializeGame = function initializeGame(mode) {
-  viewController(mode);
-};
 
 initializeGame(0);
 initializeModeButtons();
