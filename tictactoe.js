@@ -155,8 +155,6 @@ const gameController = (function gameController() {
     }
   };
 
-
-  
   return {
     getGameState,
     getTurn,
@@ -282,15 +280,13 @@ const viewController = (function viewController() {
   };
 }());
 
-// easy AI just makes random moves
+// AI functions return a move
 const AI = (function AI() {
+  // easy AI just makes random moves
   function easyAI() {
     const validSquares = gameController.getValidSquares(gameController.getBoard());
     const randomSquare = validSquares[Math.floor(Math.random() * validSquares.length)];
     viewController.updateSquare(randomSquare, 2);
-    //const squareText = mapping.squareMappingToText.get(randomSquare);
-    //const squareElement = document.querySelector(`.${squareText}`);
-    //squareElement.style.backgroundColor = 'orange';
     gameController.updateBoard(randomSquare);
   }
 
@@ -384,13 +380,40 @@ const AI = (function AI() {
   return { easyAI, impossibleAI };
 }());
 
+// utility contains functions that combine methods from scoreKeeper,
+// gameController and viewController
+const utility = (function utility() {
+  // endTurn is called after a move is performed and checks for the game ending
+  // scenarios, returns true if game is over, false otherwise
+  function endTurn(player) {
+    const boardCopy = gameController.getBoard();
+    const turn = gameController.getTurn();
+    const isWin = gameController.checkThreeInARow(boardCopy, player);
+    const isTie = gameController.checkTie(boardCopy);
+    // check if a player has won
+    if (isWin || isTie) {
+      gameController.gameFinished();
+      console.log('Game is over');
+      viewController.createPlayAgainButton();
+      const scoreToUpdate = isWin ? turn : 0;
+      scoreKeeper.updateScore(scoreToUpdate);
+      viewController.updateScoreElements(scoreToUpdate);
+      return true;
+    }
+    gameController.changeTurn();
+    return false;
+  }
+  return {
+    endTurn,
+  };
+}());
+
 // contains the functionality needed to change modes
 const initializeGame = function initializeGame(mode) {
   const squareClicked = function squareClicked(e) {
     const squareElement = e.target;
     const square = squareElement.className.split(' ')[1];
     const squareAsNum = mapping.squareMappingToNumber.get(square);
-    const turn = gameController.getTurn();
     // check if player can make the move before updating DOM and backend
     const boardCopy = gameController.getBoard();
     if (gameController.checkValidSquare(boardCopy, squareAsNum) && !gameController.getGameState()) {
@@ -398,41 +421,15 @@ const initializeGame = function initializeGame(mode) {
       // eslint-disable-next-line no-unused-expressions
       gameController.getTurn() === 1 ? squareElement.style.backgroundColor = 'red' : squareElement.style.backgroundColor = 'black';
       gameController.updateBoard(squareAsNum);
-      // check if player has won
-      if (gameController.checkThreeInARow(gameController.getBoard(), gameController.getTurn())) {
-        gameController.gameFinished();
-        console.log(`game is over ${gameController.getTurn()} has won`);
-        viewController.createPlayAgainButton();
-        scoreKeeper.updateScore(turn);
-        viewController.updateScoreElements(turn);
-        return;
-      }
-      gameController.changeTurn();
+      if (utility.endTurn(1)) return;
 
-      if (gameController.checkTie(gameController.getBoard())) {
-        gameController.gameFinished();
-        scoreKeeper.updateScore(0);
-        viewController.updateScoreElements(0);
-        viewController.createPlayAgainButton();
-      }
-      const gameOver = gameController.getGameState();
-
-      if (!gameOver) {
-        // mode 0 is easy AI, 1 impossible
-        if (mode === 0) {
-          AI.easyAI();
-          if (gameController.checkThreeInARow(gameController.getBoard(), gameController.getTurn())) {
-            gameController.gameFinished();
-            scoreKeeper.updateScore(gameController.getTurn());
-            viewController.updateScoreElements(gameController.getTurn());
-            console.log('AI has won');
-            viewController.createPlayAgainButton();
-          }
-          gameController.changeTurn();
-        } else if (mode === 1) {
-          AI.impossibleAI();
-          gameController.changeTurn();
-        }
+      // mode 0 is easy AI, 1 impossible
+      if (mode === 0) {
+        AI.easyAI();
+        utility.endTurn(2);
+      } else if (mode === 1) {
+        AI.impossibleAI();
+        utility.endTurn(2);
       }
     }
   };
