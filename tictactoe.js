@@ -1,3 +1,4 @@
+// creates a 1D index mapping
 const mapping = (function createMapping() {
   const squareMappingToText = new Map();
   squareMappingToText.set(0, 'zero');
@@ -109,13 +110,6 @@ const gameController = (function gameController() {
     return validSquares;
   };
 
-  // const rowCol = function rowCol(square) {
-  //   const row = Math.floor(square / 3);
-  //   const col = square % 3;
-
-  //   return { row, col };
-  // };
-
   // there are 8 win conditions, returns true if there is a win
   function checkThreeInARow(checkBoard, player) {
     return (
@@ -155,6 +149,11 @@ const gameController = (function gameController() {
     }
   };
 
+  // moves can only be made if the game isn't over (gameOver = false) and the square is not occupied
+  const canPlay = function canPlay(square) {
+    return checkValidSquare(getBoard(), square) && !getGameState();
+  };
+
   return {
     getGameState,
     getTurn,
@@ -167,6 +166,7 @@ const gameController = (function gameController() {
     checkTie,
     updateBoard,
     resetGameVariables,
+    canPlay,
   };
 }());
 
@@ -411,16 +411,14 @@ const utility = (function utility() {
 
 // contains the functionality needed to change modes
 const initializeGame = function initializeGame(mode) {
-
   const squareClicked = function squareClicked(e) {
     const squareElement = e.target;
     const square = squareElement.className.split(' ')[1];
-    const squareAsNum = mapping.squareMappingToNumber.get(square);
+    const squareIndex = mapping.squareMappingToNumber.get(square);
     // check if player can make the move before updating DOM and backend
-    const boardCopy = gameController.getBoard();
-    if (gameController.checkValidSquare(boardCopy, squareAsNum) && !gameController.getGameState()) {
+    if (gameController.canPlay(squareIndex)) {
       const turn = gameController.getTurn();
-      utility.performTurn(squareAsNum, turn);
+      utility.performTurn(squareIndex, turn);
       if (utility.endTurn()) return;
 
       // mode 0 is easy AI, 1 impossible
