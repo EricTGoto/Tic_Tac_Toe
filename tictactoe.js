@@ -77,7 +77,7 @@ const gameController = (function gameController() {
     return turn;
   };
 
-  const gameFinished = function gameFinished() {
+  const changeGameState = function changeGameState() {
     gameOver = !gameOver;
   };
 
@@ -144,7 +144,7 @@ const gameController = (function gameController() {
   };
 
   const resetGameVariables = function resetGameVariables() {
-    gameOver = false;
+    if (getGameState()) changeGameState();
     turn = 1;
 
     // fill board with 0s so it can be filled again
@@ -158,7 +158,7 @@ const gameController = (function gameController() {
   return {
     getGameState,
     getTurn,
-    gameFinished,
+    changeGameState,
     changeTurn,
     getBoard,
     getValidSquares,
@@ -239,11 +239,8 @@ const viewController = (function viewController() {
     }
     // extract just the bit before :
     const previousText = (playerScoreElement.textContent).split(':')[0];
-    console.log(previousText);
-
     const newScore = scoreKeeper.getPlayerScore(winner);
     const newText = `${previousText}: ${newScore}`;
-    console.log(newText);
     playerScoreElement.textContent = newText;
   }
 
@@ -394,7 +391,7 @@ const utility = (function utility() {
     const isTie = gameController.checkTie(boardCopy);
     // check if a player has won
     if (isWin || isTie) {
-      gameController.gameFinished();
+      gameController.changeGameState();
       console.log('Game is over');
       viewController.createPlayAgainButton();
       const scoreToUpdate = isWin ? turn : 0;
@@ -414,6 +411,7 @@ const utility = (function utility() {
 
 // contains the functionality needed to change modes
 const initializeGame = function initializeGame(mode) {
+
   const squareClicked = function squareClicked(e) {
     const squareElement = e.target;
     const square = squareElement.className.split(' ')[1];
@@ -461,6 +459,7 @@ const initializeGame = function initializeGame(mode) {
     modeButton.textContent = '2 Player';
   }
 
+  gameController.resetGameVariables();
   scoreKeeper.resetScore();
   document.querySelector('content').replaceChildren();
   createGameBoard();
