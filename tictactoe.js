@@ -89,19 +89,20 @@ const gameController = (function gameController() {
     return [...board];
   };
 
-  const checkValidSquare = function checkValidSquare(square) {
+  const checkValidSquare = function checkValidSquare(checkBoard, square) {
     const row = Math.floor(square / 3);
     const col = square % 3;
 
-    return getBoard()[row][col] === 0;
+    return checkBoard[row][col] === 0;
   };
 
-  const getValidSquares = function getValidSquares() {
+  // returns the 1D index of available positions
+  const getValidSquares = function getValidSquares(checkBoard) {
     let squareNumber = 0;
     const validSquares = [];
-    for (let i = 0; i < board.length; i += 1) {
-      for (let j = 0; j < board.length; j += 1) {
-        if (checkValidSquare(squareNumber)) validSquares.push(squareNumber);
+    for (let i = 0; i < checkBoard.length; i += 1) {
+      for (let j = 0; j < checkBoard.length; j += 1) {
+        if (checkValidSquare(checkBoard, squareNumber)) validSquares.push(squareNumber);
         squareNumber += 1;
       }
     }
@@ -116,25 +117,22 @@ const gameController = (function gameController() {
   // };
 
   // there are 8 win conditions, returns true if there is a win
-  function checkThreeInARow() {
-    const tempBoard = getBoard();
-    const player = getTurn();
+  function checkThreeInARow(checkBoard, player) {
     return (
-      (tempBoard[0][0] === player && tempBoard[0][1] === player && tempBoard[0][2] === player)
-      || (tempBoard[0][0] === player && tempBoard[1][0] === player && tempBoard[2][0] === player)
-      || (tempBoard[0][0] === player && tempBoard[1][1] === player && tempBoard[2][2] === player)
-      || (tempBoard[0][1] === player && tempBoard[1][1] === player && tempBoard[2][1] === player)
-      || (tempBoard[0][2] === player && tempBoard[1][2] === player && tempBoard[2][2] === player)
-      || (tempBoard[0][2] === player && tempBoard[1][1] === player && tempBoard[2][0] === player)
-      || (tempBoard[1][0] === player && tempBoard[1][1] === player && tempBoard[1][2] === player)
-      || (tempBoard[2][0] === player && tempBoard[2][1] === player && tempBoard[2][2] === player)
+      (checkBoard[0][0] === player && checkBoard[0][1] === player && checkBoard[0][2] === player)
+      || (checkBoard[0][0] === player && checkBoard[1][0] === player && checkBoard[2][0] === player)
+      || (checkBoard[0][0] === player && checkBoard[1][1] === player && checkBoard[2][2] === player)
+      || (checkBoard[0][1] === player && checkBoard[1][1] === player && checkBoard[2][1] === player)
+      || (checkBoard[0][2] === player && checkBoard[1][2] === player && checkBoard[2][2] === player)
+      || (checkBoard[0][2] === player && checkBoard[1][1] === player && checkBoard[2][0] === player)
+      || (checkBoard[1][0] === player && checkBoard[1][1] === player && checkBoard[1][2] === player)
+      || (checkBoard[2][0] === player && checkBoard[2][1] === player && checkBoard[2][2] === player)
     );
   }
 
   // returns true if the game is a tie
-  function checkTie() {
-    const tempBoard = getBoard();
-    const flattenedBoard = tempBoard.flat();
+  function checkTie(checkBoard) {
+    const flattenedBoard = checkBoard.flat();
     const found = flattenedBoard.find((square) => square === 0);
     return found !== 0;
   }
@@ -174,11 +172,9 @@ const gameController = (function gameController() {
 
 // easy AI just makes random moves
 function easyAI() {
-  const validSquares = gameController.getValidSquares();
-  console.log(validSquares);
+  const validSquares = gameController.getValidSquares(gameController.getBoard());
   const randomSquare = validSquares[Math.floor(Math.random() * validSquares.length)];
   const squareText = mapping.squareMappingToText.get(randomSquare);
-  console.log(squareText);
   const squareElement = document.querySelector(`.${squareText}`);
   squareElement.style.backgroundColor = 'orange';
   gameController.updateBoard(randomSquare);
@@ -186,7 +182,89 @@ function easyAI() {
 
 // makes the optimal move, so it never loses
 function impossibleAI() {
+  function minimax(board, player) {
+    const boardCopy = [[], [], []];
+    // when the board is too empty, the move space is too large and takes too
+    // long to compute, so we place the first move in a random corner, or the centre
+    const availablePositions = gameController.getValidSquares(board);
+    if (availablePositions.length === 8) {
+      if (availablePositions.includes(4)) {
+        return { index: 4 };
+      } else {
+        const cornerSquares = [0, 2, 6, 8];
+        let randomValue = Math.floor(Math.random() * 4);
 
+        while (!availablePositions.includes(cornerSquares[randomValue])) {
+          randomValue = Math.floor(Math.random() * 4);
+        }
+
+        return { index: cornerSquares[randomValue] };
+      }
+    }
+
+    for (let i = 0; i < board.length; i += 1) {
+      for (let j = 0; j < board.length; j += 1) {
+        boardCopy[i][j] = board[i][j];
+      }
+    }
+
+    if (gameController.checkThreeInARow(boardCopy, 1)) {
+      return { score: -10 };
+    } else if (gameController.checkThreeInARow(boardCopy, 2)) {
+      return { score: 10 };
+    } else if (gameController.checkTie(boardCopy)) {
+      return { score: 0 };
+    }
+
+    const moves = [];
+
+    availablePositions.forEach((position) => {
+      const move = {};
+      const row = Math.floor(position / 3);
+      const col = position % 3;
+      move.index = position;
+
+      boardCopy[row][col] = player;
+
+      if (player === 2) {
+        const result = minimax(boardCopy, 1);
+        move.score = result.score;
+      } else {
+        const result = minimax(boardCopy, 2);
+        move.score = result.score;
+      }
+
+      boardCopy[row][col] = 0;
+      moves.push(move);
+    });
+
+    let bestMove;
+    if (player === 2) {
+      let bestScore = -1000;
+      moves.forEach((move, index) => {
+        if (move.score > bestScore) {
+          bestScore = move.score;
+          bestMove = index;
+        }
+      });
+    } else {
+      let bestScore = 1000;
+      moves.forEach((move, index) => {
+        if (move.score < bestScore) {
+          bestScore = move.score;
+          bestMove = index;
+        }
+      });
+    }
+    return moves[bestMove];
+  }
+
+  // const testBoard = [[1, 2, 1], [2, 2, 1], [0, 1, 0]];
+  const bestMove = minimax(gameController.getBoard(), 2);
+  const squareText = mapping.squareMappingToText.get(bestMove.index);
+  const squareElement = document.querySelector(`.${squareText}`);
+  squareElement.style.backgroundColor = 'purple';
+  gameController.updateBoard(bestMove.index);
 }
 
 // viewController is in charge of creating and manipulating the DOM
@@ -285,16 +363,15 @@ const initializeGame = function initializeGame(mode) {
     const square = squareElement.className.split(' ')[1];
     const squareAsNum = mapping.squareMappingToNumber.get(square);
     const turn = gameController.getTurn();
-    console.log('turn is', turn);
     // check if player can make the move before updating DOM and backend
-    if (gameController.checkValidSquare(squareAsNum) && !gameController.getGameState()) {
+    const boardCopy = gameController.getBoard();
+    if (gameController.checkValidSquare(boardCopy, squareAsNum) && !gameController.getGameState()) {
       // eslint-disable-next-line max-len
       // eslint-disable-next-line no-unused-expressions
       gameController.getTurn() === 1 ? squareElement.style.backgroundColor = 'red' : squareElement.style.backgroundColor = 'black';
       gameController.updateBoard(squareAsNum);
-      console.log(gameController.checkThreeInARow());
       // check if player has won
-      if (gameController.checkThreeInARow()) {
+      if (gameController.checkThreeInARow(gameController.getBoard(), gameController.getTurn())) {
         gameController.gameFinished();
         console.log(`game is over ${gameController.getTurn()} has won`);
         viewController.createPlayAgainButton();
@@ -304,7 +381,7 @@ const initializeGame = function initializeGame(mode) {
       }
       gameController.changeTurn();
 
-      if (gameController.checkTie()) {
+      if (gameController.checkTie(gameController.getBoard())) {
         gameController.gameFinished();
         scoreKeeper.updateScore(0);
         viewController.updateScoreElements(0);
@@ -316,7 +393,8 @@ const initializeGame = function initializeGame(mode) {
         // mode 0 is easy AI, 1 impossible
         if (mode === 0) {
           easyAI();
-          if (gameController.checkThreeInARow()) {
+          console.log(impossibleAI());
+          if (gameController.checkThreeInARow(gameController.getBoard(), gameController.getTurn())) {
             gameController.gameFinished();
             scoreKeeper.updateScore(gameController.getTurn());
             viewController.updateScoreElements(gameController.getTurn());
@@ -326,6 +404,7 @@ const initializeGame = function initializeGame(mode) {
           gameController.changeTurn();
         } else if (mode === 1) {
           impossibleAI();
+          gameController.changeTurn();
         }
       }
     }
