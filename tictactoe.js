@@ -155,6 +155,8 @@ const gameController = (function gameController() {
     }
   };
 
+
+  
   return {
     getGameState,
     getTurn,
@@ -169,103 +171,6 @@ const gameController = (function gameController() {
     resetGameVariables,
   };
 }());
-
-// easy AI just makes random moves
-function easyAI() {
-  const validSquares = gameController.getValidSquares(gameController.getBoard());
-  const randomSquare = validSquares[Math.floor(Math.random() * validSquares.length)];
-  const squareText = mapping.squareMappingToText.get(randomSquare);
-  const squareElement = document.querySelector(`.${squareText}`);
-  squareElement.style.backgroundColor = 'orange';
-  gameController.updateBoard(randomSquare);
-}
-
-// makes the optimal move, so it never loses
-function impossibleAI() {
-  function minimax(board, player) {
-    const boardCopy = [[], [], []];
-    // when the board is too empty, the move space is too large and takes too
-    // long to compute, so we place the first move in a random corner, or the centre
-    const availablePositions = gameController.getValidSquares(board);
-    if (availablePositions.length === 8) {
-      if (availablePositions.includes(4)) {
-        return { index: 4 };
-      } else {
-        const cornerSquares = [0, 2, 6, 8];
-        let randomValue = Math.floor(Math.random() * 4);
-
-        while (!availablePositions.includes(cornerSquares[randomValue])) {
-          randomValue = Math.floor(Math.random() * 4);
-        }
-
-        return { index: cornerSquares[randomValue] };
-      }
-    }
-
-    for (let i = 0; i < board.length; i += 1) {
-      for (let j = 0; j < board.length; j += 1) {
-        boardCopy[i][j] = board[i][j];
-      }
-    }
-
-    if (gameController.checkThreeInARow(boardCopy, 1)) {
-      return { score: -10 };
-    } else if (gameController.checkThreeInARow(boardCopy, 2)) {
-      return { score: 10 };
-    } else if (gameController.checkTie(boardCopy)) {
-      return { score: 0 };
-    }
-
-    const moves = [];
-
-    availablePositions.forEach((position) => {
-      const move = {};
-      const row = Math.floor(position / 3);
-      const col = position % 3;
-      move.index = position;
-
-      boardCopy[row][col] = player;
-
-      if (player === 2) {
-        const result = minimax(boardCopy, 1);
-        move.score = result.score;
-      } else {
-        const result = minimax(boardCopy, 2);
-        move.score = result.score;
-      }
-
-      boardCopy[row][col] = 0;
-      moves.push(move);
-    });
-
-    let bestMove;
-    if (player === 2) {
-      let bestScore = -1000;
-      moves.forEach((move, index) => {
-        if (move.score > bestScore) {
-          bestScore = move.score;
-          bestMove = index;
-        }
-      });
-    } else {
-      let bestScore = 1000;
-      moves.forEach((move, index) => {
-        if (move.score < bestScore) {
-          bestScore = move.score;
-          bestMove = index;
-        }
-      });
-    }
-    return moves[bestMove];
-  }
-
-  // const testBoard = [[1, 2, 1], [2, 2, 1], [0, 1, 0]];
-  const bestMove = minimax(gameController.getBoard(), 2);
-  const squareText = mapping.squareMappingToText.get(bestMove.index);
-  const squareElement = document.querySelector(`.${squareText}`);
-  squareElement.style.backgroundColor = 'purple';
-  gameController.updateBoard(bestMove.index);
-}
 
 // viewController is in charge of creating and manipulating the DOM
 // it is instantiated once as an IIFE
@@ -351,9 +256,132 @@ const viewController = (function viewController() {
     return tictactoeSquare;
   };
 
-  return {
-    createPlayAgainButton, createScores, updateScoreElements, getSquares, setSquares, createSquare,
+  // fills square with X, O
+  // style changes depending on player, player one is black, player two is red
+  // orange for easy AI, purple for impossible AI
+  const updateSquare = function updateSquare(squareIndex, player) {
+    const elementStyle = new Map();
+    elementStyle.set(0, 'black');
+    elementStyle.set(1, 'red');
+    elementStyle.set(2, 'orange');
+    elementStyle.set(3, 'purple');
+
+    const squareText = mapping.squareMappingToText.get(squareIndex);
+    const squareElement = document.querySelector(`.${squareText}`);
+    squareElement.style.backgroundColor = elementStyle.get(player);
   };
+
+  return {
+    createPlayAgainButton,
+    createScores,
+    updateScoreElements,
+    getSquares,
+    setSquares,
+    createSquare,
+    updateSquare,
+  };
+}());
+
+// easy AI just makes random moves
+const AI = (function AI() {
+  function easyAI() {
+    const validSquares = gameController.getValidSquares(gameController.getBoard());
+    const randomSquare = validSquares[Math.floor(Math.random() * validSquares.length)];
+    viewController.updateSquare(randomSquare, 2);
+    //const squareText = mapping.squareMappingToText.get(randomSquare);
+    //const squareElement = document.querySelector(`.${squareText}`);
+    //squareElement.style.backgroundColor = 'orange';
+    gameController.updateBoard(randomSquare);
+  }
+
+  // makes the optimal move, so it never loses
+  function impossibleAI() {
+    function minimax(board, player) {
+      const boardCopy = [[], [], []];
+      // when the board is too empty, the move space is too large and takes too
+      // long to compute, so we place the first move in a random corner, or the centre
+      const availablePositions = gameController.getValidSquares(board);
+      if (availablePositions.length === 8) {
+        if (availablePositions.includes(4)) {
+          return { index: 4 };
+        } else {
+          const cornerSquares = [0, 2, 6, 8];
+          let randomValue = Math.floor(Math.random() * 4);
+
+          while (!availablePositions.includes(cornerSquares[randomValue])) {
+            randomValue = Math.floor(Math.random() * 4);
+          }
+
+          return { index: cornerSquares[randomValue] };
+        }
+      }
+
+      for (let i = 0; i < board.length; i += 1) {
+        for (let j = 0; j < board.length; j += 1) {
+          boardCopy[i][j] = board[i][j];
+        }
+      }
+
+      if (gameController.checkThreeInARow(boardCopy, 1)) {
+        return { score: -10 };
+      } else if (gameController.checkThreeInARow(boardCopy, 2)) {
+        return { score: 10 };
+      } else if (gameController.checkTie(boardCopy)) {
+        return { score: 0 };
+      }
+
+      const moves = [];
+
+      availablePositions.forEach((position) => {
+        const move = {};
+        const row = Math.floor(position / 3);
+        const col = position % 3;
+        move.index = position;
+
+        boardCopy[row][col] = player;
+
+        if (player === 2) {
+          const result = minimax(boardCopy, 1);
+          move.score = result.score;
+        } else {
+          const result = minimax(boardCopy, 2);
+          move.score = result.score;
+        }
+
+        boardCopy[row][col] = 0;
+        moves.push(move);
+      });
+
+      let bestMove;
+      if (player === 2) {
+        let bestScore = -1000;
+        moves.forEach((move, index) => {
+          if (move.score > bestScore) {
+            bestScore = move.score;
+            bestMove = index;
+          }
+        });
+      } else {
+        let bestScore = 1000;
+        moves.forEach((move, index) => {
+          if (move.score < bestScore) {
+            bestScore = move.score;
+            bestMove = index;
+          }
+        });
+      }
+      return moves[bestMove];
+    }
+
+    // const testBoard = [[1, 2, 1], [2, 2, 1], [0, 1, 0]];
+    const bestMove = minimax(gameController.getBoard(), 2);
+    const squareText = mapping.squareMappingToText.get(bestMove.index);
+    const squareElement = document.querySelector(`.${squareText}`);
+    squareElement.style.backgroundColor = 'purple';
+    gameController.updateBoard(bestMove.index);
+  }
+
+  return { easyAI, impossibleAI };
 }());
 
 // contains the functionality needed to change modes
@@ -392,8 +420,7 @@ const initializeGame = function initializeGame(mode) {
       if (!gameOver) {
         // mode 0 is easy AI, 1 impossible
         if (mode === 0) {
-          easyAI();
-          console.log(impossibleAI());
+          AI.easyAI();
           if (gameController.checkThreeInARow(gameController.getBoard(), gameController.getTurn())) {
             gameController.gameFinished();
             scoreKeeper.updateScore(gameController.getTurn());
@@ -403,7 +430,7 @@ const initializeGame = function initializeGame(mode) {
           }
           gameController.changeTurn();
         } else if (mode === 1) {
-          impossibleAI();
+          AI.impossibleAI();
           gameController.changeTurn();
         }
       }
