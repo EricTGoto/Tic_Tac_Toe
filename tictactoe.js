@@ -255,14 +255,14 @@ const viewController = (function viewController() {
   };
 
   // fills square with X, O
-  // style changes depending on player, player one is black, player two is red
+  // style changes depending on player, player one is red, player two is black
   // orange for easy AI, purple for impossible AI
   const updateSquare = function updateSquare(squareIndex, player) {
     const elementStyle = new Map();
-    elementStyle.set(0, 'black');
     elementStyle.set(1, 'red');
-    elementStyle.set(2, 'orange');
-    elementStyle.set(3, 'purple');
+    elementStyle.set(2, 'black');
+    elementStyle.set(3, 'orange');
+    elementStyle.set(4, 'purple');
 
     const squareText = mapping.squareMappingToText.get(squareIndex);
     const squareElement = document.querySelector(`.${squareText}`);
@@ -286,8 +286,7 @@ const AI = (function AI() {
   function easyAI() {
     const validSquares = gameController.getValidSquares(gameController.getBoard());
     const randomSquare = validSquares[Math.floor(Math.random() * validSquares.length)];
-    viewController.updateSquare(randomSquare, 2);
-    gameController.updateBoard(randomSquare);
+    return randomSquare;
   }
 
   // makes the optimal move, so it never loses
@@ -370,11 +369,7 @@ const AI = (function AI() {
     }
 
     // const testBoard = [[1, 2, 1], [2, 2, 1], [0, 1, 0]];
-    const bestMove = minimax(gameController.getBoard(), 2);
-    const squareText = mapping.squareMappingToText.get(bestMove.index);
-    const squareElement = document.querySelector(`.${squareText}`);
-    squareElement.style.backgroundColor = 'purple';
-    gameController.updateBoard(bestMove.index);
+    return minimax(gameController.getBoard(), 2).index;
   }
 
   return { easyAI, impossibleAI };
@@ -383,12 +378,19 @@ const AI = (function AI() {
 // utility contains functions that combine methods from scoreKeeper,
 // gameController and viewController
 const utility = (function utility() {
+  // performTurn updates DOM and board state for player
+  function performTurn(index, player) {
+    viewController.updateSquare(index, player);
+    gameController.updateBoard(index);
+  }
+
   // endTurn is called after a move is performed and checks for the game ending
   // scenarios, returns true if game is over, false otherwise
-  function endTurn(player) {
+  function endTurn() {
     const boardCopy = gameController.getBoard();
     const turn = gameController.getTurn();
-    const isWin = gameController.checkThreeInARow(boardCopy, player);
+    const isWin = gameController.checkThreeInARow(boardCopy, 1)
+                  || gameController.checkThreeInARow(boardCopy, 2);
     const isTie = gameController.checkTie(boardCopy);
     // check if a player has won
     if (isWin || isTie) {
@@ -403,7 +405,9 @@ const utility = (function utility() {
     gameController.changeTurn();
     return false;
   }
+
   return {
+    performTurn,
     endTurn,
   };
 }());
@@ -417,19 +421,19 @@ const initializeGame = function initializeGame(mode) {
     // check if player can make the move before updating DOM and backend
     const boardCopy = gameController.getBoard();
     if (gameController.checkValidSquare(boardCopy, squareAsNum) && !gameController.getGameState()) {
-      // eslint-disable-next-line max-len
-      // eslint-disable-next-line no-unused-expressions
-      gameController.getTurn() === 1 ? squareElement.style.backgroundColor = 'red' : squareElement.style.backgroundColor = 'black';
-      gameController.updateBoard(squareAsNum);
-      if (utility.endTurn(1)) return;
+      const turn = gameController.getTurn();
+      utility.performTurn(squareAsNum, turn);
+      if (utility.endTurn()) return;
 
       // mode 0 is easy AI, 1 impossible
       if (mode === 0) {
-        AI.easyAI();
-        utility.endTurn(2);
+        const move = AI.easyAI();
+        utility.performTurn(move, 3);
+        utility.endTurn();
       } else if (mode === 1) {
-        AI.impossibleAI();
-        utility.endTurn(2);
+        const move = AI.impossibleAI();
+        utility.performTurn(move, 4);
+        utility.endTurn();
       }
     }
   };
