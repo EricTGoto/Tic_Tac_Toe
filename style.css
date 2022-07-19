@@ -99,12 +99,45 @@ content {
     display: grid;
     grid-template: 1fr 1fr 1fr / 1fr 1fr 1fr;
     width: min(60%, 60vh);
+    height: 60vh;
 }
 
 .tictactoe-square {
     border: 1px black solid;
     width: 100%;
     padding-bottom: 100%;
+}
+
+.filled-x, .filled-o {
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 100px;
+}
+
+.filled-x::after {
+    content: "\00d7";
+}
+
+.filled-o::after {
+    content: "\25cb";
+}
+
+.purple {
+    color: purple;
+}
+
+.black {
+    color: black;
+}
+
+.orange {
+    color: orange;
+}
+
+.red {
+    color: red;
 }
 
 .score-container {

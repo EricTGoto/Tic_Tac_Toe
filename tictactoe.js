@@ -187,6 +187,7 @@ const viewController = (function viewController() {
   function resetBoard() {
     for (let i = 0; i < squares.length; i += 1) {
       squares[i].style.backgroundColor = '#98B4D4';
+      squares[i].classList.remove('filled-o', 'filled-x', 'red', 'black', 'purple', 'orange')
     }
     gameController.resetGameVariables();
     content.removeChild(document.querySelector('.play-again-button'));
@@ -257,14 +258,15 @@ const viewController = (function viewController() {
   // orange for easy AI, purple for impossible AI
   const updateSquare = function updateSquare(squareIndex, player) {
     const elementStyle = new Map();
-    elementStyle.set(1, 'red');
-    elementStyle.set(2, 'black');
-    elementStyle.set(3, 'orange');
-    elementStyle.set(4, 'purple');
+    elementStyle.set(1, ['filled-o', 'red']);
+    elementStyle.set(2, ['filled-o', 'black']);
+    elementStyle.set(3, ['filled-x', 'orange']);
+    elementStyle.set(4, ['filled-x', 'purple']);
 
     const squareText = mapping.squareMappingToText.get(squareIndex);
     const squareElement = document.querySelector(`.${squareText}`);
     squareElement.style.backgroundColor = elementStyle.get(player);
+    squareElement.classList.add(...elementStyle.get(player));
   };
 
   return {
@@ -424,7 +426,6 @@ const utility = (function utility() {
     // check if a player has won
     if (isWin || isTie) {
       gameController.changeGameState();
-      console.log('Game is over');
       createPlayAgainButton(mode);
       const scoreToUpdate = isWin ? turn : 0;
       scoreKeeper.updateScore(scoreToUpdate);
