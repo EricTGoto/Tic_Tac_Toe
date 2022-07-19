@@ -497,7 +497,7 @@ const initializeGame = function initializeGame(mode) {
   viewController.createScores(mode);
 
   // random chance for AI to go first
-  if (Math.random() > 0.5) {
+  if (mode !== 2 && Math.random() > 0.5) {
     utility.AIfirstTurn(mode);
   }
 };

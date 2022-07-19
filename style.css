@@ -6,7 +6,7 @@
 
 body {
     display: grid;
-    grid-template-rows: 150px 1fr;
+    grid-template-rows: 100px 1fr;
     grid-template-columns: minmax(5vw, 150px) 1fr;
     flex-direction: column;
     height: 100vh;
@@ -21,12 +21,14 @@ header {
     font-size: 20px;
     font-weight: bold;
     padding: 20px;
+    border-right: 1px rgb(145, 160, 176) solid;
 }
 
 .sidebar {
     grid-row: 2;
     grid-column: 1;
     width: 100%;
+    border-right: 1px rgb(145, 160, 176) solid;
 }
 
 .dropbtn {
