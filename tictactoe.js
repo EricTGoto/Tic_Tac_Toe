@@ -186,18 +186,19 @@ const viewController = (function viewController() {
   // make all squares empty, set turn to 1
   function resetBoard() {
     for (let i = 0; i < squares.length; i += 1) {
-      squares[i].style.backgroundColor = 'white';
+      squares[i].style.backgroundColor = '#98B4D4';
     }
     gameController.resetGameVariables();
     content.removeChild(document.querySelector('.play-again-button'));
   }
 
+  // creates a button with no functionality, functionality is added in the
+  // utility version of the same function
   function createPlayAgainButton() {
     const playAgainButton = document.createElement('div');
     playAgainButton.classList.add('play-again-button');
     playAgainButton.textContent = 'Play again?';
     content.appendChild(playAgainButton);
-    playAgainButton.addEventListener('click', resetBoard);
     return playAgainButton;
   }
 
@@ -270,6 +271,7 @@ const viewController = (function viewController() {
     createPlayAgainButton,
     createScores,
     updateScoreElements,
+    resetBoard,
     getSquares,
     setSquares,
     createSquare,
@@ -279,6 +281,13 @@ const viewController = (function viewController() {
 
 // AI functions return a move
 const AI = (function AI() {
+  // returns a random corner move
+  function cornerMove() {
+    const cornerSquares = [0, 2, 6, 8];
+    const randomValue = Math.floor(Math.random() * 4);
+    return cornerSquares[randomValue];
+  }
+
   // easy AI just makes random moves
   function easyAI() {
     const validSquares = gameController.getValidSquares(gameController.getBoard());
@@ -297,14 +306,12 @@ const AI = (function AI() {
         if (availablePositions.includes(4)) {
           return { index: 4 };
         } else {
-          const cornerSquares = [0, 2, 6, 8];
-          let randomValue = Math.floor(Math.random() * 4);
-
-          while (!availablePositions.includes(cornerSquares[randomValue])) {
-            randomValue = Math.floor(Math.random() * 4);
+          let cornerIndex = cornerMove();
+          while (!availablePositions.includes(cornerIndex)) {
+            cornerIndex = cornerMove();
           }
 
-          return { index: cornerSquares[randomValue] };
+          return { index: cornerIndex };
         }
       }
 
@@ -369,7 +376,7 @@ const AI = (function AI() {
     return minimax(gameController.getBoard(), 2).index;
   }
 
-  return { easyAI, impossibleAI };
+  return { cornerMove, easyAI, impossibleAI };
 }());
 
 // utility contains functions that combine methods from scoreKeeper,
@@ -381,9 +388,34 @@ const utility = (function utility() {
     gameController.updateBoard(index);
   }
 
+  function AIfirstTurn(mode) {
+    // By default turn is 1, so must change to 2 for AI move
+    gameController.changeTurn();
+    const aiMode = mode === 0 ? 3 : 4;
+    const move = mode === 0 ? AI.easyAI() : AI.cornerMove();
+    performTurn(move, aiMode);
+    gameController.changeTurn();
+  }
+
+  function playAgainButtonFunctionality(mode) {
+    viewController.resetBoard();
+    gameController.resetGameVariables();
+
+    if (mode !== 2) {
+      if (Math.random() > 0.5) {
+        AIfirstTurn(mode);
+      }
+    }
+  }
+
+  function createPlayAgainButton(mode) {
+    const button = viewController.createPlayAgainButton();
+    button.addEventListener('click', () => playAgainButtonFunctionality(mode));
+  }
+
   // endTurn is called after a move is performed and checks for the game ending
   // scenarios, returns true if game is over, false otherwise
-  function endTurn() {
+  function endTurn(mode) {
     const boardCopy = gameController.getBoard();
     const turn = gameController.getTurn();
     const isWin = gameController.checkThreeInARow(boardCopy, 1)
@@ -393,7 +425,7 @@ const utility = (function utility() {
     if (isWin || isTie) {
       gameController.changeGameState();
       console.log('Game is over');
-      viewController.createPlayAgainButton();
+      createPlayAgainButton(mode);
       const scoreToUpdate = isWin ? turn : 0;
       scoreKeeper.updateScore(scoreToUpdate);
       viewController.updateScoreElements(scoreToUpdate);
@@ -406,6 +438,7 @@ const utility = (function utility() {
   return {
     performTurn,
     endTurn,
+    AIfirstTurn,
   };
 }());
 
@@ -419,17 +452,17 @@ const initializeGame = function initializeGame(mode) {
     if (gameController.canPlay(squareIndex)) {
       const turn = gameController.getTurn();
       utility.performTurn(squareIndex, turn);
-      if (utility.endTurn()) return;
+      if (utility.endTurn(mode)) return;
 
       // mode 0 is easy AI, 1 impossible
       if (mode === 0) {
         const move = AI.easyAI();
         utility.performTurn(move, 3);
-        utility.endTurn();
+        utility.endTurn(mode);
       } else if (mode === 1) {
         const move = AI.impossibleAI();
         utility.performTurn(move, 4);
-        utility.endTurn();
+        utility.endTurn(mode);
       }
     }
   };
@@ -462,6 +495,11 @@ const initializeGame = function initializeGame(mode) {
   document.querySelector('content').replaceChildren();
   createGameBoard();
   viewController.createScores(mode);
+
+  // random chance for AI to go first
+  if (Math.random() > 0.5) {
+    utility.AIfirstTurn(mode);
+  }
 };
 
 function initializeModeButtons() {
