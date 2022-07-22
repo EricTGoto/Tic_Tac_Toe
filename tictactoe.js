@@ -187,7 +187,7 @@ const viewController = (function viewController() {
   function resetBoard() {
     for (let i = 0; i < squares.length; i += 1) {
       squares[i].style.backgroundColor = '#98B4D4';
-      squares[i].classList.remove('filled-o', 'filled-x', 'red', 'black', 'purple', 'orange')
+      squares[i].classList.remove('filled-o', 'filled-x', 'red', 'black', 'purple', 'orange');
     }
     gameController.resetGameVariables();
     content.removeChild(document.querySelector('.play-again-button'));
